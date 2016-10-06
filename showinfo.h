@@ -9,3 +9,4 @@ void checkStat(char*,char*,int);
 int isShowFile(int,char);
 void printAllInfo(char*,struct stat);
 void showFileInfo(char*,struct stat,int);
+void setFileColor(char*);

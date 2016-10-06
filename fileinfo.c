@@ -25,6 +25,20 @@ char* getGrpName(gid_t gid)
     }
     return str;       
 }
+//根据文件类型返回不同颜色
+char* getColor(char c)
+{
+    switch(c){
+        case 'd':return "\033[01;34m"; /* di: Directory: bright blue */
+        case 'l':return "\033[01;36m"; /* ln: Symlink: bright cyan */
+        case 'p':return "\033[33m";    /* pi: Pipe: yellow/brown */
+        case 's':return "\033[01;35m"; /* so: Socket: bright magenta */
+        case 'b':return "\033[01;33m"; /* bd: Block device: bright yellow */
+        case 'c':return "\033[01;33m"; /* cd: Char device: bright yellow */
+        case 'x':return "\033[01;32m"; /* ex: Executable: bright green */
+    }
+    return "\033[0m";
+}
 //解码st_mode,得到mode属性
 char *getMode(mode_t mode)
 {
@@ -35,7 +49,8 @@ char *getMode(mode_t mode)
     else if(S_ISCHR(mode)) str[0]='c';
     else if(S_ISBLK(mode)) str[0]='b';
     else if(S_ISLNK(mode)) str[0]='l';
-    else if(S_ISFIFO(mode)) str[0]='p';   
+    else if(S_ISFIFO(mode)) str[0]='p';
+    else if(S_ISSOCK(mode)) str[0]='s';   
 
     if(mode&S_IRUSR) str[1]='r';
     if(mode&S_IWUSR) str[2]='w';

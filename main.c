@@ -1,6 +1,9 @@
-#include<stdio.h>
-#include<string.h>
-#include "showinfo.h"
+#include <stdio.h>
+#include <string.h>
+#ifndef _SHOWINFO
+    #define _SHOWINFO
+    #include "showinfo.h"
+#endif
 int main(int argc,char *argv[])
 {
     int isA=0,isL=0;
@@ -32,9 +35,10 @@ int main(int argc,char *argv[])
     else{
         //依次处理每个路径
         for(int i=dirst;i<argc;i++){
-            printf("%s:\n",argv[i]);
+            if(dirst!=argc-1)
+                printf("%s:\n",argv[i]);
             subfile(argv[i],flag);
-            if(i!=argc) puts("");
+            if(i!=argc-1) puts("");
         }
     }   
     return 0;
