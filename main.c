@@ -31,13 +31,14 @@ int main(int argc,char *argv[])
     int flag=isA+isL;
     //未输入路径则查询当前路径
     if(dirst==argc)
-        subfile(".",flag);
+        subfile(".",flag,0);
     else{
         //依次处理每个路径
+        int isPrintDirname=1;
+        if(dirst!=argc-1)
+            isPrintDirname=0;
         for(int i=dirst;i<argc;i++){
-            if(dirst!=argc-1)
-                printf("%s:\n",argv[i]);
-            subfile(argv[i],flag);
+            subfile(argv[i],flag,isPrintDirname);
             if(i!=argc-1) puts("");
         }
     }   
