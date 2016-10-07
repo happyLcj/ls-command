@@ -1,7 +1,8 @@
 #include "fileinfo.h"
-#ifndef _SHOWINFO
-    #define _SHOWINFO
+#ifndef _HEAD_
+    #define _HEAD_
     #include "showinfo.h"
+    #include "parameter.h"
 #endif
 //将不带路径的文件名转化为带路径的完整名
 char* fnameToPath(char* dirname,char *fname)
@@ -14,22 +15,21 @@ char* fnameToPath(char* dirname,char *fname)
     strcat(pname,fname); 
     return pname;
 }
-void subfile(char *dirname,int flag,int isPrintDirname)
+void subfile(char *dirname,int pamter,int isPrintDirname)
 {
     struct stat info;
     if(lstat(dirname,&info)==-1){
-        fprintf(stderr,"ls:Cannot open '%s':No such file or directory\n",dirname);
+        fprintf(stderr,"ls:Cannot access '%s':No such file or directory\n",dirname);
     }
     else{
         if(!S_ISDIR(info.st_mode)){
-            showFileInfo(dirname,info,flag);
-            puts("");
+            showFileInfo(dirname,info,pamter);
         }
         else{
             DIR *dir_ptr=NULL;
             struct dirent *direntp;
             if((dir_ptr=opendir(dirname))==NULL){
-                fprintf(stderr,"ls:Cannot open '%s':No such file or directory\n",dirname);
+                fprintf(stderr,"ls:Cannot access '%s':No such file or directory\n",dirname);
             }
             else{
                 if(isPrintDirname)
@@ -37,17 +37,17 @@ void subfile(char *dirname,int flag,int isPrintDirname)
                 numOfFile=0;
                 //readdir逐个读取目录下的子文
                 while((direntp=readdir(dir_ptr))!=NULL){
-                    checkStat(dirname,direntp->d_name,flag);
+                    checkStat(dirname,direntp->d_name,pamter);
                 }
-                if(flag==0||flag==1)
-                    puts("");
                 closedir(dir_ptr);
             }
         }
+        if(!IS_LONG(pamter))
+            puts("");
     }
 }
 //获取文件对应的属性
-void checkStat(char* dirname,char *filename,int flag)
+void checkStat(char* dirname,char *filename,int pamter)
 {
     struct stat info;
     //filename是不带路径的文件名
@@ -55,12 +55,12 @@ void checkStat(char* dirname,char *filename,int flag)
     if(lstat(pathname,&info)==-1)
         perror(pathname);
     else
-        showFileInfo(filename,info,flag);
+        showFileInfo(filename,info,pamter);
 }
 //判断隐藏文件是否需输出
-int isShowFile(int flag,char c)
+int isShowFile(int pamter,char c)
 {
-    if((flag==0||flag==2)&&c=='.')
+    if(!IS_ALL(pamter)&&c=='.')
         return -1;
     return 0;    
 }
@@ -75,8 +75,10 @@ void setFileColor(char* mode)
     printf("%s",getColor(c));
 }
 //输出文件的各种属性
-void printAllInfo(char* filename,struct stat info)
+void printAllInfo(char* filename,struct stat info,int pamter)
 {
+    if(IS_INODE(pamter))
+        printf("%-9d",info.st_ino);
     char *mode=getMode(info.st_mode);
     printf("%s",mode);
     printf("%4d",(int)info.st_nlink);
@@ -88,14 +90,19 @@ void printAllInfo(char* filename,struct stat info)
     printf(" %s\n",filename);
     printf("\033[0m");
 }
-void showFileInfo(char* filename,struct stat info,int flag)
+void showFileInfo(char* filename,struct stat info,int pamter)
 {
-    if(isShowFile(flag,filename[0])==0){
-        if(flag==2||flag==3)
-             printAllInfo(filename,info);
+    if(isShowFile(pamter,filename[0])==0){
+        if(IS_LONG(pamter))
+             printAllInfo(filename,info,pamter);
         else{
-            if(numOfFile&&numOfFile%3==0)
-                puts("");
+            //无-l时：有-i参数，两个文件信息显示在一行
+            //       无-i,三个文件信息显示在一行
+            if(numOfFile&&((IS_INODE(pamter)&&numOfFile%2==0)
+              ||(!IS_INODE(pamter)&&numOfFile%3==0)))
+                    puts("");
+            if(IS_INODE(pamter))
+                printf("%-9d",info.st_ino);
             char *mode=getMode(info.st_mode);
             setFileColor(mode);
             printf("%-25s ",filename);
